@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service2-app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service2-app
+  template:
+    metadata:
+      labels:
+        app: service2-app
+    spec:
+      containers:
+      - name: service2-app
+        image: hugoja0/project_cloud_service_2
+        imagePullPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service2
+  namespace: default
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  selector:
+    app: service2-app
+  ports:
+    - port: 80 
+      targetPort: 8080  
