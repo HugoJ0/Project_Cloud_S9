@@ -1,67 +1,113 @@
-# Projet Configurateur : Développement Web avancé
 
-### Membres
+# Cloud Project S9
+
+### Members
+Hugo JAMINON  
+Baptiste KEUNEBROEK  
+Julien MABECQUE
+
+### Sources
+The sources for this project are taken from the M1 project in Advanced Web Development whose group was:
+
 Elvin AUPIAIS--BERTHY  
 Mohammed Saber BELLAAZIRI  
 Monica-Pauline BLANC  
 Hugo JAMINON   
 
-### Configuration du projet :  
+The following changes were made:
+- Added a second service which allows you to make queries to a database
+- Added a database
+- Modification of the front to add this second service to the navigation bar.
+
+### Project setup :  
   
-#### Installez node js
+#### Prerequisites
 ```
-https://nodejs.org/en/download/
-```
-
-### Compilez et chargez pour la partie frontend
-
-> 1. Aller dans le dossier vue
-```
-cd vue
+- Kubernetes
+- Docker
+- Istio
 ```
 
-> 2. Installez les dépendances 
+#### Installation and launch
+> 1. Start Kubernetes
 ```
-npm install
-```
-
-> 3. Run la partie front 
-
-```
-npm run serve
+minikube start --memory=5000 --cpus=4
 ```
 
-### Compilez et chargez pour la partie backend
-> 1. Ouvrez une nouvelle fenêtre du terminal de commande windows cmd ou terminal sur mac
-> 2. Copiez le chemin d'accès du dossier back-end du projet
-> 3. Tapez la commande suivante :
+> 2. Install Istio : https://github.com/charroux/servicemesh#install-istio
+```
+cd istio
+istioctl install --set profile=demo -y
+kubectl label namespace default istio-injection=enabled
+kubectl apply -f samples/addons
+kubectl label namespace default istio-injection=enabled
+minikube docker-env
+minikube -p minikube docker-env
+minikube docker-env
+```
+
+#### Docker images (They are already created, skip this)
+> Create images
 
 ```
 cd server
+docker build -t hugoja0/project_cloud_service_1 .
+cd ..
 ```
-> 5. Créer un ficher .env et mettez le dans server
-> 6. Remplissez-le avec les information ci-dessous
 ```
-ORIGIN = "http://localhost:8080"
-PORT = "8081"
+cd server2
+docker build -t hugoja0/project_cloud_service_2 .
+cd ..
 ```
-> 7. Installer les dépendances 
 ```
-npm install
-```
-> 8. Build le server
-```
-npm run build
-```
-> 9. Run le server
-```
-npm run start
+cd front
+docker build -t hugoja0/project_cloud_front .
+cd ..
 ```
 
-### Votre projet peut désormais fonctionner !
+> Publish images
+```
+docker login
+docker push hugoja0/project_cloud_service_1
+docker push hugoja0/project_cloud_service_2
+docker push hugoja0/project_cloud_front
+```
 
-La partie frontend  fonctionnera à l'adresse suivante : http://localhost:8080/
-La partie back end fonctionnera à l'adresse suivante : http://localhost:8081/ 
+#### Initialize database
+
+```
+cd Database
+kubectl apply -f mysql-secret.yaml
+kubectl apply -f mysql-deployment.yaml
+kubectl apply -f mysql-serviceClusterIp.yaml
+cd ..
+```
+
+#### Deploy services
+
+```
+kubectl apply -f service1-deployment.yaml
+kubectl apply -f service2-deployment.yaml
+```
+
+#### Create gateway
+
+```
+kubectl apply -f gateway.yaml
+ingress-forward.sh
+```
+
+#### Deploy front
+
+```
+kubectl apply -f front-deployment.yaml
+```
 
 
+### URL
 
+- App : http://localhost:31380/
+
+- Service 1 : http://localhost:31380/service1/
+
+- Service 2 : http://localhost:31380/service2/
